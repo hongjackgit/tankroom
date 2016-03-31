@@ -25,13 +25,11 @@ func(this *TankRoom) InRoom(msg *Message,conn net.Conn) *TankRoom {
     this.Conn[msg.Id][msg.SendUser]=conn
     this.Id=msg.Id
     this.Title="DOTA"
-    fmt.Println(this.Conn)
     
     return this
 }
 
 func(this *TankRoom) Broad(msg *Message){
-    fmt.Println("msg:",msg)
     for _,val := range this.Conn[msg.Id] {
         _ ,err := val.Write([]byte(msg.SendUser+" say: "+msg.Msg))
         if(err != nil){
