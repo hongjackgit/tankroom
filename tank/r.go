@@ -8,7 +8,7 @@ import(
 type TankRoom struct {
     Id int64
     Title string
-    Conn map[int64]map[string] net.Conn
+    Conn map[int64]map[net.Conn]    string
 }
 
 func CreateTankRoom() *TankRoom{
@@ -17,30 +17,29 @@ func CreateTankRoom() *TankRoom{
 }
 func(this *TankRoom) InRoom(msg *Message,conn net.Conn) *TankRoom {
     if(this.Conn == nil){
-        this.Conn = make(map[int64]map[string] net.Conn)
+        this.Conn = make(map[int64]map[net.Conn] string)
     }
     if(this.Conn[msg.Id] == nil){
-        this.Conn[msg.Id] = make(map[string] net.Conn)
+        this.Conn[msg.Id] = make(map[net.Conn] string)
     }
-    this.Conn[msg.Id][msg.SendUser]=conn
+    this.Conn[msg.Id][conn]=msg.SendUser
     this.Id=msg.Id
     this.Title="DOTA"
-    fmt.Println(this.Conn)
-    
     return this
 }
 
 func(this *TankRoom) Broad(msg *Message){
-    fmt.Println("msg:",msg)
-    for _,val := range this.Conn[msg.Id] {
-        _ ,err := val.Write([]byte(msg.SendUser+" say: "+msg.Msg))
+    fmt.Printf("before %vx \n",this)
+    for k,val := range this.Conn[msg.Id] {
+        _ ,err := k.Write([]byte(msg.SendUser+" say: "+msg.Msg))
         if(err != nil){
-            delete(this.Conn[msg.Id],msg.SendUser)
-            fmt.Println("Send error",err.Error(),this.Conn[msg.Id])
+            this.OutRoom(msg.Id,k)
+            fmt.Println("Send error",err.Error(),val)
         }
     }
 }
 
-func(this *TankRoom) OurRoom(msg *Message,conn net.Conn){
-    fmt.Println(msg.SendUser," out ")
+func(this *TankRoom) OutRoom(id int64,conn net.Conn){
+    delete(this.Conn[id],conn)
+    
 }
